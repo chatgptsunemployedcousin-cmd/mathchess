@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <title>Chess</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -197,80 +197,73 @@ function draw0(){const bd=$('board');bd.innerHTML='';
   if(B[i]){const s=document.createElement('span');s.className='pc '+(isW(B[i])?'w':'k');s.textContent=GL[B[i].toLowerCase()]+'\uFE0E';d.appendChild(s)}
   if(k%8==0){const x=document.createElement('span');x.className='co rk';x.textContent=8-(i>>3);d.appendChild(x)}if(k>55){const x=document.createElement('span');x.className='co fl';x.textContent='abcdefgh'[i&7];d.appendChild(x)}d.onclick=()=>click(i);bd.appendChild(d)}
  $('score').innerHTML=`<span>Correct: <b>${sc.r}</b></span><span>Wrong: <b>${sc.w}</b></span>`}
-const lobbyMsg=t=>{$('room').textContent=t};
-const OPT={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}]}};
-const perr=e=>e.type=='peer-unavailable'?'No game with that code.':e.type=='unavailable-id'?'Code clash. Press Create game again.':['network','server-error','socket-error','socket-closed'].includes(e.type)?'Cannot reach the PeerJS server. Your wifi may block it. Try mobile data.':'Connection problem: '+e.type;
-let pubGame=false,lastList=[],peer=null,conn=null,S=null,rated=0,myLobby=null,rsend=null,rbusy=0,rq=[],rp=null;const lob=new Map(),REG='mathschess-lobbies';
-const quiz=()=>false;
-const A=()=>{try{return JSON.parse(localStorage.getItem('mc_a')||'{}')}catch(e){return{}}};
-let cu=localStorage.getItem('mc_u')||'';if(!A()[cu])cu='';
-const myName=()=>cu||$('un').value.trim().slice(0,14)||'Guest',myElo=()=>cu?A()[cu].e:null;
-function showMe(msg){$('me').textContent=msg||(cu?cu+', Elo '+A()[cu].e:'Playing as a guest (no Elo)');$('li').textContent=cu?'Log out':'Log in'}
-async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function auth(reg){const u=$('un').value.trim().slice(0,14),p=$('pw').value;if(!u||p.length<4)return showMe('Enter a username and a password (4+ characters).');
- const a=A(),h=await hash(p);
- if(reg){if(a[u])return showMe('That username is taken on this device.');a[u]={h,e:1000}}else if(!a[u]||a[u].h!=h)return showMe('Wrong username or password.');
- localStorage.setItem('mc_a',JSON.stringify(a));localStorage.setItem('mc_u',cu=u);$('pw').value='';showMe()}
+const SB_URL='https://xxtgffafzkcvxyownhel.supabase.co',SB_KEY='sb_publishable_YIJOyC5iLW2o61euKeAQ0g_LpoN2J-z';
+const sb=(window.supabase&&SB_URL.startsWith('http'))?supabase.createClient(SB_URL,SB_KEY):null;
+let pubGame=false,lastList=[],pf=null,GR=null,rated=0,ch=null;
+const lobbyMsg=t=>{$('room').textContent=t},quiz=()=>false,myName=()=>pf?pf.username:'Guest';
+const need=()=>!sb?'Online is not set up yet: add the Supabase keys to the file.':!pf?'Log in first to play online.':'';
+function showMe(msg){$('me').textContent=msg||(pf?pf.username+', Elo '+pf.elo:'Log in to play online and earn Elo');$('li').textContent=pf?'Log out':'Log in'}
+async function loadProfile(){if(!sb)return showMe();const{data:{user}}=await sb.auth.getUser();pf=null;
+ if(user){const r=await sb.from('profiles').select('*').eq('id',user.id).single();pf=r.data}showMe()}
+async function auth(reg){if(!sb)return showMe(need());const u=$('un').value.trim(),p=$('pw').value;
+ if(!/^[A-Za-z0-9_]{3,14}$/.test(u)||p.length<6)return showMe('Username: 3-14 letters or numbers. Password: 6+ characters.');
+ const email=u.toLowerCase()+'@mathschess.app';let r;
+ if(reg){r=await sb.auth.signUp({email,password:p});if(r.error)return showMe(/registered/i.test(r.error.message)?'That username is taken.':r.error.message);
+  if(!r.data.session)return showMe('Turn off "Confirm email" in Supabase Auth settings, then try again.');
+  const q=await sb.from('profiles').insert({id:r.data.user.id,username:u});if(q.error)return showMe(/duplicate/.test(q.error.message)?'That username is taken.':q.error.message)}
+ else{r=await sb.auth.signInWithPassword({email,password:p});if(r.error)return showMe('Wrong username or password.')}
+ $('pw').value='';await loadProfile()}
 function wait(t){phase='wait';sel=null;hints=[];$('q').textContent=t;$('opts').innerHTML='';$('fb').textContent='';status(t)}
 function addChat(n,m){const d=document.createElement('div');d.textContent=n+': '+m;$('cl').appendChild(d);$('cl').scrollTop=1e5}
-function sendChat(){const m=$('ci').value.trim();if(!m||!conn)return;try{conn.send({chat:m,n:myName()});addChat('You',m)}catch(e){}$('ci').value=''}
-function wire(c){conn=c;c.on('data',d=>{if(d.chat)return addChat(d.n,d.chat);
- if(d.hi){S.black=true;S.bn=d.n;S.be=d.e;if(myLobby&&rsend)rsend({unreg:code});myLobby=null;c.send(S);return onGame(S)}S=d;onGame(S)});
- c.on('close',()=>{if(!over)lobbyMsg('Your opponent disconnected.')});c.on('error',()=>lobbyMsg('Connection error.'))}
+function sendChat(){const m=$('ci').value.trim();if(!m||!ch)return;ch.send({type:'broadcast',event:'chat',payload:{n:myName(),m}});addChat('You',m);$('ci').value=''}
 function enter(side){mode='online';me=side;flip=side==-1;hist=[];over=false;rated=0;sel=null;hints=[];sc={r:0,w:0};phase='wait';
  $('chat').hidden=false;$('cl').innerHTML='';lobbyMsg(pubGame?'Public lobby':'Game code: '+code);
- unsub=()=>{if(myLobby&&rsend)rsend({unreg:myLobby.code});myLobby=null;try{peer&&peer.destroy()}catch(e){}peer=null;conn=null}}
-function create(){if(!window.Peer)return lobbyMsg('Online play could not load. Check your internet connection.');
+ unsub=()=>{if(GR&&!GR.black&&GR.white==pf.id)sb.from('games').delete().eq('id',GR.id).then(()=>{});if(ch)sb.removeChannel(ch);ch=null;GR=null}}
+function listen(id){ch=sb.channel('g'+id).on('postgres_changes',{event:'UPDATE',schema:'public',table:'games',filter:'id=eq.'+id},p=>{GR=p.new;gameUpdate(GR)})
+ .on('broadcast',{event:'chat'},p=>addChat(p.payload.n,p.payload.m))
+ .subscribe(s=>{if(s=='SUBSCRIBED')sb.from('games').select('*').eq('id',id).single().then(r=>{if(r.data){GR=r.data;gameUpdate(GR)}})})}
+async function gameUpdate(r){const ids=[r.white,r.black].filter(Boolean),d=await sb.from('profiles').select('*').in('id',ids),P={};(d.data||[]).forEach(x=>P[x.id]=x);
+ const w=P[r.white]||{},b=P[r.black]||{};onGame({...r.state,black:!!r.black,pub:r.is_public,wn:w.username,we:w.elo,bn:b.username,be:b.elo})}
+async function create(){const n=need();if(n)return lobbyMsg(n);if(unsub){unsub();unsub=null}
+ const c=Array.from({length:5},()=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[R(0,30)]).join(''),nm=$('ln').value.trim().slice(0,20)||pf.username+'\u2019s game',pub=$('vis').value=='1';
+ const st={b:JSON.stringify(START()),last:[],turn:'w',cr:'KQkq',ep:-1,f:F0,m:null,res:'',winner:0};
+ const r=await sb.from('games').insert({code:c,name:nm,is_public:pub,white:pf.id,state:st}).select().single();
+ if(r.error)return lobbyMsg('Could not create the game: '+r.error.message);
+ code=c;pubGame=pub;GR=r.data;enter(1);listen(GR.id);gameUpdate(GR)}
+async function join(p){pubGame=p===true;const n=need();if(n)return lobbyMsg(n);const c=$('cd').value.trim().toUpperCase();if(!c)return lobbyMsg('Type a game code first.');
  if(unsub){unsub();unsub=null}
- code=Array.from({length:5},()=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[R(0,30)]).join('');lobbyMsg('Creating game\u2026');S=null;mode='bot';
- const nm=$('ln').value.trim().slice(0,20)||myName()+'\u2019s lobby',pub=$('vis').value=='1';
- pubGame=pub;peer=new Peer('mathschess-'+code,OPT);
- peer.on('open',()=>{S={b:JSON.stringify(START()),last:[],turn:'w',black:false,res:'',winner:0,wn:myName(),we:myElo(),bn:'',be:null,quiz:false,name:nm,pub:pub,cr:'KQkq',ep:-1,f:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',m:null};enter(1);onGame(S);
-  if(pub){myLobby={code,name:nm,host:myName(),elo:myElo(),quiz:S.quiz};regOpen(()=>rsend({reg:myLobby}))}});
- peer.on('connection',c=>{if(S&&S.black){c.close();return}wire(c)});
- peer.on('error',e=>lobbyMsg(perr(e)));
- setTimeout(()=>{if(!S||S.wn==null||mode!='online')lobbyMsg('Still connecting\u2026 if this stays, your wifi may be blocking the PeerJS server. Try mobile data.')},10000)}
-function join(p){pubGame=p===true;const c=$('cd').value.trim().toUpperCase();if(!c)return lobbyMsg('Type a game code first.');
- if(!window.Peer)return lobbyMsg('Online play could not load. Check your internet connection.');
- if(unsub){unsub();unsub=null}code=c;lobbyMsg('Joining\u2026');
- peer=new Peer(undefined,OPT);
- peer.on('open',()=>{const k=peer.connect('mathschess-'+c,{reliable:true});wire(k);
-  const t=setTimeout(()=>lobbyMsg('Could not reach that game. Check the code.'),9000);
-  k.on('open',()=>{clearTimeout(t);enter(-1);k.send({hi:1,n:myName(),e:myElo()})})});
- peer.on('error',e=>lobbyMsg(perr(e)))}
-function onGame(g){B=JSON.parse(g.b);last=g.last||[];sel=null;hints=[];CR=g.cr==null?'KQkq':g.cr;EP=g.ep==null?-1:g.ep;STM=g.turn=='w'?1:-1;if(g.f&&(!hist.length||hist[hist.length-1].f!=g.f))hist.push({f:g.f,m:g.m});
- if(g.black)lobbyMsg(g.wn+(g.we?' ('+g.we+')':'')+' vs '+g.bn+(g.be?' ('+g.be+')':''));
- if(g.res){over=true;phase='end';$('rb').hidden=false;termEv=g.res=='mate'?-10000:0;let t=g.res=='stale'?'Stalemate. It is a draw.':(g.winner==me?'Checkmate! You win!':'Checkmate. Your opponent wins.');
-  if(!rated&&cu){rated=1;const oe=(me==1?g.be:g.we)||1000,a=A(),e=a[cu].e,s=g.res=='stale'?.5:g.winner==me?1:0,n=Math.round(e+32*(s-1/(1+10**((oe-e)/400))));a[cu].e=n;localStorage.setItem('mc_a',JSON.stringify(a));t+=' Elo '+e+' \u2192 '+n;showMe()}
+ let r=(await sb.from('games').select('*').eq('code',c).single()).data,side;if(!r)return lobbyMsg('No game with that code.');
+ if(r.white==pf.id)side=1;else if(r.black==pf.id)side=-1;else if(!r.black){const u=await sb.from('games').update({black:pf.id,status:'playing'}).eq('id',r.id).is('black',null).select().single();
+  if(u.error||!u.data)return lobbyMsg('That game is full.');r=u.data;side=-1}else return lobbyMsg('That game is full.');
+ code=c;GR=r;enter(side);listen(r.id);gameUpdate(r)}
+function onGame(g){B=JSON.parse(g.b);last=g.last||[];sel=null;hints=[];CR=g.cr==null?'KQkq':g.cr;EP=g.ep==null?-1:g.ep;STM=g.turn=='w'?1:-1;
+ if(g.f&&(!hist.length||hist[hist.length-1].f!=g.f))hist.push({f:g.f,m:g.m});
+ if(g.black)lobbyMsg((g.wn||'?')+' ('+g.we+') vs '+(g.bn||'?')+' ('+g.be+')');
+ if(g.res){over=true;phase='end';$('rb').hidden=false;termEv=g.res=='mate'?-10000:0;
+  const t=g.res=='stale'?'Stalemate. It is a draw.':(g.winner==me?'Checkmate! You win!':'Checkmate. Your opponent wins.');
+  if(!rated){rated=1;const e0=pf?pf.elo:0;sb.rpc('report_result',{gid:GR.id,win:g.res=='mate'?(g.winner==1?GR.white:GR.black):null}).then(async()=>{await loadProfile();if(pf)status(t+' Elo '+e0+' \u2192 '+pf.elo)})}
   status(t);$('q').textContent=t;$('opts').innerHTML='';$('fb').textContent='';draw();return}
- if(!g.black){wait(g.pub?'Waiting for a player to join your lobby…':'Waiting for a friend. Share the code '+code+'.');draw();return}
+ if(!g.black){wait(g.pub?'Waiting for a player to join your lobby\u2026':'Waiting for a friend. Share the code '+code+'.');draw();return}
  if((g.turn=='w'?1:-1)==me){if(phase=='wait')ask();else draw()}else{wait('Opponent\u2019s turn\u2026');draw()}}
-function push(e){S={...S,b:JSON.stringify(B),last,turn:me==1?'b':'w',cr:CR,ep:EP,f:fen(),m:hist[hist.length-1].m};if(e){S.res=inCheck(B,-me)?'mate':'stale';S.winner=me}
- try{conn.send(S)}catch(x){status('Move failed to send.')}onGame(S)}
-function pushPass(){phase='wait';S={...S,turn:me==1?'b':'w'};try{conn.send(S)}catch(x){status('Could not pass the turn.')}onGame(S)}
+async function push(e){const st={b:JSON.stringify(B),last,turn:me==1?'b':'w',cr:CR,ep:EP,f:fen(),m:hist[hist.length-1].m,res:'',winner:0};
+ if(e){st.res=inCheck(B,-me)?'mate':'stale';st.winner=me}
+ const r=await sb.from('games').update({state:st,status:e?'done':'playing'}).eq('id',GR.id);
+ if(r.error)status('Move failed to send. Check your connection.');else{GR.state=st;gameUpdate(GR)}}
+function pushPass(){}
 function showList(a){lastList=a;const p=$('sl'),q=$('sq').value.trim().toLowerCase(),f=a.filter(l=>l.name.toLowerCase().includes(q));$('cnt').textContent=a.length+' Rooms';p.innerHTML='';
  if(!f.length){const d=document.createElement('div');d.textContent=a.length?'No rooms match your search.':'No public rooms right now. Create one!';p.appendChild(d);return}
  f.forEach(l=>{const d=document.createElement('div');d.className='rw';d.tabIndex=0;d.setAttribute('role','button');
-  [[l.name,'nm'],[l.host+(l.elo?' ('+l.elo+')':''),''],['1/2','']].forEach(([t,c])=>{const x=document.createElement('span');x.textContent=t;if(c)x.className=c;d.appendChild(x)});
+  [[l.name,'nm'],[l.host+' ('+l.elo+')',''],['1/2','']].forEach(([t,c])=>{const x=document.createElement('span');x.textContent=t;if(c)x.className=c;d.appendChild(x)});
   const go=()=>{$('srv').hidden=true;$('cd').value=l.code;join(true)};d.onclick=go;d.onkeydown=e=>{if(e.key=='Enter')go()};p.appendChild(d)})}
-function regFail(t){$('sl').textContent=t;if(myLobby)lobbyMsg('Not listed publicly yet: '+t)}
-function regOpen(f){if(rsend)return f();rq.push(f);if(rbusy)return;rbusy=1;
- const bad=t=>{if(!rbusy)return;rbusy=0;rq=[];regFail(t)},tm=setTimeout(()=>bad('Could not reach the lobby server. Your wifi may block it. Try mobile data.'),10000);
- const ready=x=>{clearTimeout(tm);rsend=x;rbusy=0;const q=rq;rq=[];q.forEach(y=>y())};
- const p=new Peer(REG,OPT);
- p.on('open',()=>{rp=p;ready(m=>hr(m,null))});
- p.on('connection',c=>{c.on('data',m=>hr(m,c));c.on('close',()=>lob.forEach((v,k)=>{if(v.c===c)lob.delete(k)}))});
- p.on('error',e=>{if(e.type!='unavailable-id'){bad('Lobby server error: '+e.type);return}p.destroy();const q=new Peer(undefined,OPT);
-  q.on('open',()=>{const c=q.connect(REG,{reliable:true});c.on('open',()=>ready(m=>c.send(m)));c.on('data',m=>{if(m.list)showList(m.list)});
-   c.on('close',()=>{rsend=null;if(myLobby)setTimeout(()=>regOpen(()=>rsend({reg:myLobby})),1500+R(0,2500))})});
-  q.on('error',x=>bad(x.type=='peer-unavailable'?'The lobby list is restarting. Trying again\u2026':'Lobby server error: '+x.type))})}
-function hr(m,c){if(m.reg)lob.set(m.reg.code,{...m.reg,c});if(m.unreg)lob.delete(m.unreg);
- if(m.ls){const a=[...lob.values()].map(({c,...r})=>r);c?c.send({list:a}):showList(a)}}
-$('rg').onclick=()=>auth(1);$('li').onclick=()=>cu?(cu='',localStorage.removeItem('mc_u'),showMe()):auth(0);
-const refresh=a=>{if(a!==true)$('sl').textContent='Looking…';regOpen(()=>rsend({ls:1}))};
-setInterval(()=>{if(!$('srv').hidden&&!rbusy)refresh(true);if(myLobby&&!rbusy)regOpen(()=>rsend({reg:myLobby}))},6000);
+async function refresh(a){if(!sb)return $('sl').textContent=need();if(a!==true)$('sl').textContent='Looking\u2026';
+ const g=await sb.from('games').select('code,name,white').eq('is_public',true).eq('status','waiting').gte('created_at',new Date(Date.now()-30*6e4).toISOString()).order('created_at',{ascending:false}).limit(30);
+ if(g.error)return $('sl').textContent='Could not load rooms: '+g.error.message;
+ const d=await sb.from('profiles').select('*').in('id',(g.data||[]).map(x=>x.white)),P={};(d.data||[]).forEach(x=>P[x.id]=x);
+ showList((g.data||[]).map(x=>({code:x.code,name:x.name||'Game',host:(P[x.white]||{}).username||'?',elo:(P[x.white]||{}).elo})))}
+$('rg').onclick=()=>auth(1);$('li').onclick=()=>pf?(sb.auth.signOut(),pf=null,showMe()):auth(0);
 $('bw').onclick=()=>{$('srv').hidden=false;refresh()};$('sb').onclick=()=>{$('srv').hidden=true};$('sr').onclick=refresh;$('sc').onclick=()=>{$('srv').hidden=true;$('ln').focus()};$('sq').oninput=()=>showList(lastList);
-$('cs').onclick=sendChat;$('ci').onkeydown=e=>{if(e.key=='Enter')sendChat()};showMe();
+setInterval(()=>{if(!$('srv').hidden)refresh(true)},5000);
+$('cs').onclick=sendChat;$('ci').onkeydown=e=>{if(e.key=='Enter')sendChat()};loadProfile();
 const F0='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 let CR='KQkq',EP=-1,STM=1,hist=[],termEv=0,sfFail=0,sf=null,sfCb=null,sfSc=0;
 const sq=i=>'abcdefgh'[i&7]+(8-(i>>3)),sqi=u=>(8-+u[1])*8+'abcdefgh'.indexOf(u[0]);
