@@ -57,7 +57,7 @@ aside{width:min(92vw,400px);display:flex;flex-direction:column;gap:12px}
 #top{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}#top>a,#top>span,#top summary{font:inherit;font-weight:500;padding:8px 16px;border-radius:999px;border:2px solid var(--dk);color:var(--ink);text-decoration:none;cursor:pointer;list-style:none;background:transparent}#top>span.on{background:var(--dk);color:#fff;cursor:default}#top>a:hover,#top summary:hover{background:var(--lt);color:#17262b}#top summary::-webkit-details-marker{display:none}
 .dd{position:relative}.dd>div{position:absolute;top:110%;left:0;z-index:20;background:var(--card);border:2px solid var(--dk);border-radius:10px;display:flex;flex-direction:column;min-width:170px;overflow:hidden}.dd>div a{padding:10px 14px;color:var(--ink);text-decoration:none}.dd>div a:hover{background:var(--lt);color:#17262b}
 #top button{font:inherit;font-weight:500;padding:8px 16px;border-radius:999px;border:2px solid var(--dk);color:var(--ink);background:transparent;cursor:pointer}#top>button:hover{background:var(--lt);color:#17262b}
-#cdlg,#pgd,#pm,#cc{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px}.cb{background:var(--card);color:var(--ink);border-radius:12px;padding:18px;width:min(420px,100%);display:flex;flex-direction:column;gap:10px}.cb h3{margin:0}.cb label{display:flex;flex-direction:column;gap:4px;font-weight:500}.cb input:not([type=file]){font:inherit;padding:8px;border-radius:8px;border:2px solid var(--dk);background:transparent;color:var(--ink)}
+#cdlg,#pgd,#pm,#cc,#gate{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px}.cb{background:var(--card);color:var(--ink);border-radius:12px;padding:18px;width:min(420px,100%);display:flex;flex-direction:column;gap:10px}.cb h3{margin:0}.cb label{display:flex;flex-direction:column;gap:4px;font-weight:500}.cb input:not([type=file]){font:inherit;padding:8px;border-radius:8px;border:2px solid var(--dk);background:transparent;color:var(--ink)}
 #fx{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:100;font-weight:600;font-size:min(14vw,110px);text-align:center;opacity:0;letter-spacing:.04em}
 #fx.show{animation:pop var(--d,2.6s) ease-out forwards}#fx.mate{color:#fff;text-shadow:0 0 12px #e5484d,0 0 40px #e5484d,0 4px 0 #7a1217;--d:2.6s}#fx.alien{color:#7dff6a;text-shadow:0 0 14px #2bd14a,0 0 50px #2bd14a;font-size:min(16vw,130px);--d:4.5s}
 @keyframes pop{0%{opacity:0;transform:scale(.3) rotate(-6deg)}12%{opacity:1;transform:scale(1.25) rotate(2deg)}22%{transform:scale(1) rotate(0)}85%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.1)}}
@@ -76,6 +76,7 @@ aside{width:min(92vw,400px);display:flex;flex-direction:column;gap:12px}
 .pcard{font:inherit;text-align:left;padding:14px;border-radius:10px;border:0;background:#3d3b37;color:#fff;cursor:pointer;display:flex;flex-direction:column;gap:2px}.pcard b{font-size:1.2rem}.pcard span{opacity:.8;font-size:.9rem}.pcard:hover{background:#4a4845}
 #ccok,#pmx{font:inherit;font-size:1.1rem;font-weight:600;padding:12px;border:0;border-radius:10px;background:#81b64c;color:#fff;cursor:pointer}#pmx{background:#555}
 @media(max-width:420px){.cg{grid-template-columns:repeat(3,1fr)}}
+#gate{z-index:200!important;background:#1d1c1a!important}#gate .cb{background:#2b2926;color:#fff}.gb{font:inherit;font-weight:600;padding:10px 14px;border-radius:10px;border:2px solid #81b64c;background:transparent;color:#fff;cursor:pointer}.gb.p{background:#81b64c}#gate .row .gb{flex:1}#gmsg{min-height:1.3em}
 </style></head><body>
 <nav id="top" aria-label="Subjects"><span class="on">Chess</span><a href="https://www.deltamath.com" target="_blank" rel="noopener">Maths</a><details class="dd"><summary>English</summary><div><a href="https://www.ixl.com" target="_blank" rel="noopener" onclick="this.closest('details').open=false">IXL</a><a href="https://morphologymash.com/practice?name=Starter%3A%20un-%2C%20re-%2C%20-ful%2C%20-less&amp;type=build&amp;bank=un%2Cre%2Ckind%2Chelp%2Ccare%2Chope%2Cuse%2Cfear%2Cjoy%2Cthank%2Cplay%2Cread%2Cwrite%2Cfair%2Csafe%2Ctie%2Clock%2Cpack%2Ccover%2Cheat%2Cbuild%2Cful%2Cless%2Cness%2Cly%2Cer%2Ca%2Cab&amp;types=1&amp;fb=now&amp;qlim=0&amp;tsec=0" target="_blank" rel="noopener" onclick="this.closest('details').open=false">Morphology Mash</a></div></details><a href="https://classroom.google.com/u/0/h" target="_blank" rel="noopener">Computing</a><button id="lb">Learn</button><span id="cl2"></span><button id="cu">+ Custom</button></nav>
 <h1>Chess</h1>
@@ -83,7 +84,7 @@ aside{width:min(92vw,400px);display:flex;flex-direction:column;gap:12px}
 <main>
 <div id="bwrap"><div id="cm" hidden><div class="av" id="cav"></div><div id="cmt"></div></div><div class="pb"><span id="pn1"></span><span class="ck" id="c1"></span></div><div id="board" role="grid" aria-label="Chess board"></div><div class="pb"><span id="pn2"></span><span class="ck" id="c2"></span></div></div>
 <aside>
-<div class="row"><input id="un" placeholder="Username" maxlength="14" aria-label="Username"><input id="pw" type="password" placeholder="Password" aria-label="Password"><button id="li">Log in</button><button id="rg">Register</button></div><div id="me"></div>
+<div class="row"><span id="me"></span><button id="li">Log out</button></div>
 <div class="row"><input id="ln" placeholder="Lobby name" maxlength="20" aria-label="Lobby name"><select id="vis" aria-label="Lobby type"><option value="1">Public</option><option value="0">Private</option></select><button id="mk">Create game</button></div>
 <div class="row"><input id="cd" placeholder="Game code" maxlength="5" aria-label="Game code" style="text-transform:uppercase"><button id="jn">Join</button><button id="bw">Browse public</button></div>
 <div id="room" aria-live="polite"></div>
@@ -101,6 +102,7 @@ aside{width:min(92vw,400px);display:flex;flex-direction:column;gap:12px}
 <button id="new">New game vs bot</button>
 </aside>
 </main>
+<div id="gate" hidden><div class="cb"><h3>Sign in to play</h3><label>Email<input id="gem" type="email" autocomplete="email"></label><label>Password<input id="gpw" type="password" autocomplete="current-password"></label><label>Username (new accounts only)<input id="gun" maxlength="14"></label><div class="row"><button id="gin" class="gb p">Sign in</button><button id="gup" class="gb">Create account</button></div><button id="ggo" class="gb">Continue with Google</button><div id="gmsg" aria-live="polite"></div></div></div>
 <div id="pm" hidden><div class="cb"><h3>♟ Play Chess</h3><label>Time control<select id="tcs"><option value="0">No timer</option><option value="1+0">1 min</option><option value="3+0">3 min</option><option value="5+0">5 min</option><option value="10+0">10 min</option><option value="15+10">15 min + 10 sec</option></select></label><label>Bot level<select id="lvl2"></select></label>
 <button class="pcard" data-p="on"><b>⚡ Play Online</b><span>Play vs a person of similar skill</span></button><button class="pcard" data-p="bt"><b>🤖 Play Bots</b><span>Challenge a bot from Level 1 to 23</span></button><button class="pcard" data-p="co"><b>🧑‍🏫 Play Coach</b><span>Learn as you play a game with your coach</span></button><button class="pcard" data-p="fr"><b>🤝 Play a Friend</b><span>Invite a friend with a private code</span></button><button id="pmx">Close</button></div></div>
 <div id="cc" hidden><div class="cb"><h3>Choose Your Coach</h3><div class="spk"><div class="av" id="ccav"></div><div class="bub" id="ccb"></div></div><div id="ccg" class="cg"></div><button id="ccok">Choose Coach</button></div></div>
@@ -235,16 +237,22 @@ let pubGame=false,lastList=[],pf=null,GR=null,rated=0,ch=null;
 const lobbyMsg=t=>{$('room').textContent=t},quiz=()=>false,myName=()=>pf?pf.username:'Guest';
 const need=()=>!sb?'Online is not set up yet: add the Supabase keys to the file.':!pf?'Log in first to play online.':'';
 function showMe(msg){$('me').textContent=msg||(pf?pf.username+', Elo '+pf.elo:'Log in to play online and earn Elo');$('li').textContent=pf?'Log out':'Log in'}
-async function loadProfile(){if(!sb)return showMe();const{data:{user}}=await sb.auth.getUser();pf=null;
- if(user){const r=await sb.from('profiles').select('*').eq('id',user.id).single();pf=r.data}showMe()}
-async function auth(reg){if(!sb)return showMe(need());const u=$('un').value.trim(),p=$('pw').value;
- if(!/^[A-Za-z0-9_]{3,14}$/.test(u)||p.length<6)return showMe('Username: 3-14 letters or numbers. Password: 6+ characters.');
- const email=u.toLowerCase()+'@mathschess.app';let r;
- if(reg){r=await sb.auth.signUp({email,password:p});if(r.error)return showMe(/registered/i.test(r.error.message)?'That username is taken.':r.error.message);
-  if(!r.data.session)return showMe('Turn off "Confirm email" in Supabase Auth settings, then try again.');
-  const q=await sb.from('profiles').insert({id:r.data.user.id,username:u});if(q.error)return showMe(/duplicate/.test(q.error.message)?'That username is taken.':q.error.message)}
- else{r=await sb.auth.signInWithPassword({email,password:p});if(r.error)return showMe('Wrong username or password.')}
- $('pw').value='';await loadProfile()}
+let lp=null;
+function loadProfile(){return lp=lp||(async()=>{try{if(!sb){$('gate').hidden=true;return showMe()}const{data:{user}}=await sb.auth.getUser();pf=null;
+ if(user){const r=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();pf=r.data;
+  if(!pf){const md=user.user_metadata||{},base=String(md.username||md.full_name||md.name||(user.email||'player').split('@')[0]).replace(/[^A-Za-z0-9_]/g,'').slice(0,10)||'player';
+   for(let k=0;k<6&&!pf;k++){const u=(k?base+R(10,9999):base).slice(0,14),q=await sb.from('profiles').insert({id:user.id,username:u}).select().single();if(!q.error)pf=q.data}}}
+ $('gate').hidden=!!pf;showMe()}finally{lp=null}})()}
+async function gAuth(mode){const e=$('gem').value.trim(),p=$('gpw').value,u=$('gun').value.trim(),m=t=>{$('gmsg').textContent=t};
+ if(!sb)return m('Online is not set up yet.');if(!/^\S+@\S+\.\S+$/.test(e)||p.length<6)return m('Enter a valid email and a password of 6 or more characters.');
+ if(mode=='up'){if(!/^[A-Za-z0-9_]{3,14}$/.test(u))return m('Pick a username: 3-14 letters or numbers.');
+  const r=await sb.auth.signUp({email:e,password:p,options:{data:{username:u},emailRedirectTo:location.origin}});if(r.error)return m(r.error.message);
+  if(r.data.session){loadProfile();return}return m('Almost done! Check your email and click the confirmation link. Then come back and sign in.')}
+ const r=await sb.auth.signInWithPassword({email:e,password:p});if(r.error)return m(/confirm/i.test(r.error.message)?'Please confirm your email first. Check your inbox.':'Wrong email or password.');loadProfile()}
+$('gin').onclick=()=>gAuth('in');$('gup').onclick=()=>gAuth('up');
+$('ggo').onclick=()=>{if(!sb)return $('gmsg').textContent='Online is not set up yet.';sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin}})};
+if(sb)sb.auth.onAuthStateChange(ev=>{if(ev=='SIGNED_IN'||ev=='SIGNED_OUT')setTimeout(loadProfile,0)});
+$('li').onclick=async()=>{if(sb)await sb.auth.signOut();pf=null;showMe();loadProfile()};
 function wait(t){phase='wait';sel=null;hints=[];$('q').textContent=t;$('opts').innerHTML='';$('fb').textContent='';status(t)}
 function addChat(n,m){const d=document.createElement('div');d.textContent=n+': '+m;$('cl').appendChild(d);$('cl').scrollTop=1e5}
 function sendChat(){const m=$('ci').value.trim();if(!m||!ch)return;ch.send({type:'broadcast',event:'chat',payload:{n:myName(),m}});addChat('You',m);$('ci').value=''}
@@ -252,7 +260,7 @@ function enter(side){disg=false;document.body.classList.remove('disg');mode='onl
  $('chat').hidden=false;$('cl').innerHTML='';lobbyMsg(pubGame?'Public lobby':'Game code: '+code);
  unsub=()=>{if(GR&&!GR.black&&GR.white==pf.id)sb.from('games').delete().eq('id',GR.id).then(()=>{});if(ch)sb.removeChannel(ch);ch=null;GR=null}}
 function listen(id){ch=sb.channel('g'+id).on('postgres_changes',{event:'UPDATE',schema:'public',table:'games',filter:'id=eq.'+id},p=>{GR=p.new;gameUpdate(GR)})
- .on('broadcast',{event:'chat'},p=>addChat(p.payload.n,p.payload.m)).on('broadcast',{event:'req'},p=>hostReq(p.payload)).on('broadcast',{event:'drawreq'},p=>{const ok=confirm(p.payload.n+' offers a draw. Accept?');ch.send({type:'broadcast',event:'drawans',payload:{ok}});if(ok)status('Draw agreed.')}).on('broadcast',{event:'drawans'},p=>{if(p.payload.ok)pushEnd('draw',0);else status('Draw declined.')})
+ .on('broadcast',{event:'chat'},p=>addChat(p.payload.n,p.payload.m)).on('broadcast',{event:'drawreq'},p=>{const ok=confirm(p.payload.n+' offers a draw. Accept?');ch.send({type:'broadcast',event:'drawans',payload:{ok}});if(ok)status('Draw agreed.')}).on('broadcast',{event:'drawans'},p=>{if(p.payload.ok)pushEnd('draw',0);else status('Draw declined.')})
  .subscribe(s=>{if(s=='SUBSCRIBED')sb.from('games').select('*').eq('id',id).single().then(r=>{if(r.data){GR=r.data;gameUpdate(GR)}})})}
 async function gameUpdate(r){const ids=[r.white,r.black].filter(Boolean),d=await sb.from('profiles').select('*').in('id',ids),P={};(d.data||[]).forEach(x=>P[x.id]=x);
  const w=P[r.white]||{},b=P[r.black]||{};onGame({...r.state,black:!!r.black,pub:r.is_public,wn:w.username,we:w.elo,bn:b.username,be:b.elo})}
@@ -265,7 +273,7 @@ async function create(){const n=need();if(n)return lobbyMsg(n);if(unsub){unsub()
 async function join(p){pubGame=p===true;const n=need();if(n)return lobbyMsg(n);const c=$('cd').value.trim().toUpperCase();if(!c)return lobbyMsg('Type a game code first.');
  if(unsub){unsub();unsub=null}
  let r=(await sb.from('games').select('*').eq('code',c).single()).data,side;if(!r)return lobbyMsg('No game with that code.');
- if(r.white==pf.id)side=1;else if(r.black==pf.id)side=-1;else if(!r.black){if(p===true&&!(await askHost(r)))return lobbyMsg('The host did not accept. Try another game.');const u=await sb.from('games').update({black:pf.id,status:'playing'}).eq('id',r.id).is('black',null).select().single();
+ if(r.white==pf.id)side=1;else if(r.black==pf.id)side=-1;else if(!r.black){const u=await sb.from('games').update({black:pf.id,status:'playing'}).eq('id',r.id).is('black',null).select().single();
   if(u.error||!u.data)return lobbyMsg('That game is full.');r=u.data;side=-1}else return lobbyMsg('That game is full.');
  code=c;GR=r;enter(side);listen(r.id);gameUpdate(r)}
 function onGame(g){const rc0=B?B.filter(x=>x=='R'||x=='r').length:0;B=JSON.parse(g.b);if(B.filter(x=>x=='R'||x=='r').length<rc0)rookAnim();last=g.last||[];sel=null;hints=[];CR=g.cr==null?'KQkq':g.cr;EP=g.ep==null?-1:g.ep;STM=g.turn=='w'?1:-1;
@@ -293,7 +301,6 @@ async function refresh(a){if(!sb)return $('sl').textContent=need();if(a!==true)$
  if(g.error)return $('sl').textContent='Could not load rooms: '+g.error.message;
  const d=await sb.from('profiles').select('*').in('id',(g.data||[]).map(x=>x.white)),P={};(d.data||[]).forEach(x=>P[x.id]=x);
  showList((g.data||[]).map(x=>({code:x.code,name:x.name||'Game',host:(P[x.white]||{}).username||'?',elo:(P[x.white]||{}).elo})))}
-$('rg').onclick=()=>auth(1);$('li').onclick=()=>pf?(sb.auth.signOut(),pf=null,showMe()):auth(0);
 $('bw').onclick=()=>{$('srv').hidden=false;refresh()};$('sb').onclick=()=>{$('srv').hidden=true};$('sr').onclick=refresh;$('sc').onclick=()=>{$('srv').hidden=true;$('ln').focus()};$('sq').oninput=()=>showList(lastList);
 setInterval(()=>{if(!$('srv').hidden)refresh(true)},5000);
 $('cs').onclick=sendChat;$('ci').onkeydown=e=>{if(e.key=='Enter')sendChat()};loadProfile();
